@@ -31,7 +31,6 @@ const App: React.FC = () => {
   const [isRefining, setIsRefining] = useState<string | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   
-  // Ref to handle subtask input clearing
   const subtaskInputsRef = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   useEffect(() => {
@@ -49,7 +48,6 @@ const App: React.FC = () => {
     }
   }, [tasks, user]);
 
-  // Removed apiKey parameter to comply with guidelines
   const handleLogin = (username: string) => {
     if (!username.trim()) return;
     const loggedUser = HoloStore.login(username.toLowerCase());
@@ -133,7 +131,6 @@ const App: React.FC = () => {
     }));
   };
 
-  // Simplified handleAutoDecompose as apiKey is now handled globally
   const handleAutoDecompose = async (task: Task) => {
     setIsRefining(task.id);
     try {
@@ -179,33 +176,29 @@ const App: React.FC = () => {
           </Canvas>
         </div>
         <div className="absolute inset-0 z-10 flex items-center justify-center p-6">
-          <div className="w-full max-w-md bg-zinc-900/60 backdrop-blur-3xl border border-white/10 p-10 rounded-[40px] shadow-2xl text-center">
-            <div className="inline-block p-4 bg-purple-600/20 rounded-3xl mb-6">
+          <div className="login-card">
+            <div className="inline-block p-4 mb-6" style={{ background: 'rgba(147, 51, 234, 0.2)', borderRadius: '1.5rem' }}>
               <ShieldCheck className="w-12 h-12 text-purple-400" />
             </div>
-            <h1 className="text-4xl font-bold orbitron mb-2 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">HOLOTASK</h1>
-            <p className="text-zinc-500 mb-8 uppercase text-[10px] tracking-[0.2em] font-bold">Secure Command Uplink</p>
+            <h1 className="text-4xl orbitron mb-2 tracking-tighter text-gradient">HOLOTASK</h1>
+            <p className="text-zinc-500 mb-8 uppercase text-xs tracking-widest font-bold">Secure Command Uplink</p>
             
             <div className="space-y-4 text-left">
-              <div className="relative group">
-                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-purple-400" />
+              <div className="input-group">
+                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
                 <input 
                   type="text"
                   value={loginInput}
                   onChange={(e) => setLoginInput(e.target.value)}
                   placeholder="Commander ID..."
-                  className="w-full bg-black/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 outline-none focus:border-purple-500/50 transition-all placeholder:text-zinc-700 text-lg uppercase font-mono"
+                  className="uppercase font-mono"
                 />
               </div>
-              {/* Removed API Key input block to comply with guidelines: do not ask user for API key */}
-              <button 
-                onClick={() => handleLogin(loginInput)}
-                className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 p-4 rounded-2xl font-bold orbitron tracking-widest text-sm transition-all shadow-[0_0_30px_rgba(147,51,234,0.3)] active:scale-95"
-              >
+              <button onClick={() => handleLogin(loginInput)} className="w-full btn-primary orbitron tracking-widest text-sm">
                 INITIALIZE_SESSION
               </button>
             </div>
-            <p className="mt-8 text-[9px] text-zinc-600 orbitron">PERSISTENT_STORAGE: LOCAL_DB_V2_ACTIVE</p>
+            <p className="mt-8 text-zinc-600 orbitron" style={{ fontSize: '9px' }}>PERSISTENT_STORAGE: LOCAL_DB_V2_ACTIVE</p>
           </div>
         </div>
       </div>
@@ -213,7 +206,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black text-white selection:bg-purple-500/30">
+    <div className="relative w-full h-screen overflow-hidden bg-black text-white">
       <div className="absolute inset-0 z-0">
         <Canvas>
           <Background3D completionRate={completionRate} />
@@ -225,12 +218,10 @@ const App: React.FC = () => {
         <div className="w-full md:w-1/3 flex flex-col pointer-events-auto">
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-purple-600 rounded-2xl shadow-[0_0_20px_rgba(147,51,234,0.5)]">
+              <div className="p-3" style={{ background: '#9333ea', borderRadius: '1rem', boxShadow: '0 0 20px rgba(147, 51, 234, 0.5)' }}>
                 <ListTodo className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold orbitron tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
-                HOLOTASK
-              </h1>
+              <h1 className="text-4xl orbitron tracking-tighter text-gradient">HOLOTASK</h1>
             </div>
             <div className="flex items-center gap-2 ml-14 text-zinc-400 text-xs font-bold orbitron tracking-tighter opacity-80 uppercase">
               <UserIcon className="w-3 h-3 text-cyan-400" />
@@ -238,43 +229,39 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative group mb-8">
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-2xl blur opacity-25 group-focus-within:opacity-100 transition duration-500"></div>
-            <div className="relative flex items-center bg-zinc-900/80 backdrop-blur-xl border border-white/10 p-2 rounded-2xl shadow-2xl">
-              <input 
+          <div className="input-group mb-8">
+             <input 
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addTask()}
                 placeholder="New objective node..."
-                className="w-full bg-transparent border-none outline-none px-4 py-3 text-lg font-light placeholder:text-zinc-600"
+                className="text-lg font-light"
+                style={{ paddingLeft: '1.5rem' }}
               />
               <button 
                 onClick={addTask}
-                className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all duration-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded-xl transition-all"
               >
                 <Plus className="w-6 h-6" />
               </button>
-            </div>
           </div>
 
           <div className="mt-auto space-y-4">
-            <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/5 shadow-xl">
-              <div className="flex justify-between text-[10px] orbitron mb-3 tracking-widest text-zinc-400">
+            <div className="backdrop-blur-md p-5 rounded-3xl border shadow-xl" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.05)' }}>
+              <div className="flex justify-between orbitron mb-3 tracking-widest text-zinc-400" style={{ fontSize: '10px' }}>
                 <span className="flex items-center gap-2"><Zap className="w-3 h-3 text-yellow-400" />FLEET_EFFICIENCY</span>
-                <span className="text-white">{Math.round(completionRate * 100)}%</span>
+                <span style={{ color: 'white' }}>{Math.round(completionRate * 100)}%</span>
               </div>
-              <div className="w-full h-1.5 bg-zinc-800/50 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-purple-500 via-cyan-400 to-emerald-400 transition-all duration-1000"
-                  style={{ width: `${completionRate * 100}%` }}
-                />
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${completionRate * 100}%` }} />
               </div>
             </div>
 
             <button 
               onClick={handleLogout}
-              className="flex items-center justify-center gap-2 w-full p-4 bg-white/5 hover:bg-red-500/10 border border-white/5 rounded-2xl text-[10px] orbitron tracking-[0.2em] font-bold text-zinc-500 hover:text-red-400 transition-all"
+              className="flex items-center justify-center gap-2 w-full p-4 hover:bg-red-500/10 border rounded-2xl font-bold text-zinc-500 hover:text-red-400 transition-all uppercase tracking-widest"
+              style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.05)', fontSize: '10px' }}
             >
               <LogOut className="w-4 h-4" />
               TERMINATE_UPLINK
@@ -289,16 +276,16 @@ const App: React.FC = () => {
               <Sparkles className="w-5 h-5 text-yellow-400" />
               ACTIVE_NODES
             </h2>
-            <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-mono border border-white/10 text-zinc-400">
+            <div className="px-3 py-1 rounded-full font-mono border text-zinc-400" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', fontSize: '10px' }}>
               UPLINK_STABLE // STORAGE_MODE: PERSISTENT
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-6 pb-20">
             {tasks.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center text-zinc-600 border-2 border-dashed border-white/5 rounded-[40px] backdrop-blur-sm">
+              <div className="h-64 flex flex-col items-center justify-center text-zinc-600 border-2 border-dashed rounded-[40px] backdrop-blur-sm" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
                 <BrainCircuit className="w-12 h-12 mb-4 opacity-20" />
-                <p className="font-light italic tracking-widest uppercase text-[10px]">No active directives detected for {user.username}</p>
+                <p className="font-light italic tracking-widest uppercase" style={{ fontSize: '10px' }}>No active directives detected for {user.username}</p>
               </div>
             ) : (
               tasks.map((task) => {
@@ -308,12 +295,12 @@ const App: React.FC = () => {
                 const isExpanded = expandedTasks.has(task.id);
 
                 return (
-                  <div key={task.id} className="group relative transition-all duration-500">
-                    <div className="relative bg-zinc-900/40 backdrop-blur-3xl border border-white/10 rounded-[32px] p-6 shadow-2xl overflow-hidden">
+                  <div key={task.id} className="relative transition-all">
+                    <div className="holo-card p-6 shadow-2xl overflow-hidden">
                       <div className="flex items-start gap-4">
                         <button onClick={() => toggleTask(task.id)}>
                           {task.completed ? (
-                            <CheckCircle className="w-7 h-7 text-cyan-400 fill-cyan-400/10" />
+                            <CheckCircle className="w-7 h-7 text-cyan-400" />
                           ) : (
                             <Circle className="w-7 h-7 text-zinc-700 hover:text-purple-400" />
                           )}
@@ -341,12 +328,12 @@ const App: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 transition-all duration-500" style={{ width: `${taskPercent}%` }} />
+                            <div className="progress-bar" style={{ height: '4px' }}>
+                              <div className="progress-fill" style={{ width: `${taskPercent}%` }} />
                             </div>
-                            <span className="text-[10px] font-mono text-zinc-500">{taskPercent}%</span>
+                            <span className="font-mono text-zinc-500" style={{ fontSize: '10px' }}>{taskPercent}%</span>
                           </div>
-                          <button onClick={() => toggleExpand(task.id)} className="mt-4 flex items-center gap-2 text-[10px] orbitron tracking-widest text-zinc-600 hover:text-zinc-300">
+                          <button onClick={() => toggleExpand(task.id)} className="mt-4 flex items-center gap-2 orbitron tracking-widest text-zinc-600 hover:text-zinc-300" style={{ fontSize: '10px' }}>
                             {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             SUB_DIRECTIVES: {subCount}
                           </button>
@@ -354,29 +341,27 @@ const App: React.FC = () => {
                       </div>
                       
                       {isExpanded && (
-                        <div className="mt-4 pt-4 border-t border-white/5 space-y-2 animate-in slide-in-from-top-2 duration-300">
+                        <div className="mt-4 pt-4 border-t space-y-2" style={{ borderTopColor: 'rgba(255,255,255,0.05)' }}>
                           {task.subtasks.map((sub) => (
-                            <div key={sub.id} className="group/sub flex items-center gap-3 px-3 py-2 hover:bg-white/5 rounded-xl transition-colors">
+                            <div key={sub.id} className="subtask-item">
                               <button onClick={() => toggleSubtask(task.id, sub.id)}>
                                 {sub.completed ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Circle className="w-4 h-4 text-zinc-700" />}
                               </button>
                               <span className={`text-xs flex-1 ${sub.completed ? 'text-zinc-600 line-through' : 'text-zinc-300'}`}>{sub.text}</span>
-                              <button onClick={() => deleteSubtask(task.id, sub.id)} className="text-zinc-700 hover:text-red-400 opacity-0 group-hover/sub:opacity-100 transition-opacity">
+                              <button onClick={() => deleteSubtask(task.id, sub.id)} className="text-zinc-700 hover:text-red-400 transition-opacity">
                                 <Trash2 className="w-3 h-3" />
                               </button>
                             </div>
                           ))}
                           
-                          {/* Manual Subtask Input with Visible Add Button */}
                           <div className="mt-3 flex items-center gap-2 px-3">
-                            <div className="flex-1 relative group/subinput">
-                              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-xl blur opacity-0 group-focus-within/subinput:opacity-100 transition duration-300"></div>
+                            <div className="flex-1 relative">
                               <input 
                                 type="text"
-                                // Fixed: Wrapped in curly braces to ensure the ref callback returns void instead of the element instance
                                 ref={el => { subtaskInputsRef.current[task.id] = el; }}
                                 placeholder="New sub-directive..."
-                                className="relative w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs outline-none focus:border-cyan-500/50 transition-all placeholder:text-zinc-700"
+                                className="w-full bg-black/40 border rounded-xl px-4 py-2 text-xs outline-none transition-all placeholder:text-zinc-700"
+                                style={{ borderColor: 'rgba(255,255,255,0.05)' }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     const val = (e.target as HTMLInputElement).value;
@@ -394,7 +379,8 @@ const App: React.FC = () => {
                                   input.value = '';
                                 }
                               }}
-                              className="p-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-lg transition-all border border-cyan-500/20 active:scale-95"
+                              className="p-2 rounded-lg transition-all border active:scale-95 text-cyan-400"
+                              style={{ background: 'rgba(8, 145, 178, 0.1)', borderColor: 'rgba(8, 145, 178, 0.2)' }}
                               title="Add subtask"
                             >
                               <PlusSquare className="w-4 h-4" />
@@ -410,12 +396,6 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.2); border-radius: 10px; }
-      `}</style>
     </div>
   );
 };
