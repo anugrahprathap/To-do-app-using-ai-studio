@@ -1,0 +1,5 @@
+{
+  "name": "Copy of HoloTask 3D",
+  "description": "An immersive 3D-based To-Do application featuring a holographic interface, real-time 3D task visualization using React Three Fiber, and Gemini-powered smart task decomposition.",
+  "requestFramePermissions": []
+}
