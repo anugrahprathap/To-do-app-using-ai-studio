@@ -23,7 +23,6 @@ export interface Task {
 export interface User {
   username: string;
   tasks: Task[];
-  apiKey?: string;
 }
 
 export interface GeminiRefinement {

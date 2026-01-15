@@ -15,22 +15,18 @@ export class HoloStore {
     localStorage.setItem(DB_KEY, JSON.stringify(users));
   }
 
-  static login(username: string, apiKey?: string): User {
+  // Removed apiKey parameter to comply with global API key management rules
+  static login(username: string): User {
     const users = this.getUsers();
     const normalizedUsername = username.toLowerCase();
     
     if (users[normalizedUsername]) {
-      if (apiKey) {
-        users[normalizedUsername].apiKey = apiKey;
-        this.saveUser(users[normalizedUsername]);
-      }
       return users[normalizedUsername];
     }
     
     const newUser: User = { 
       username: normalizedUsername, 
-      tasks: [],
-      apiKey: apiKey || "" 
+      tasks: []
     };
     this.saveUser(newUser);
     return newUser;

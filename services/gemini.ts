@@ -2,12 +2,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { GeminiRefinement } from "../types";
 
-export async function refineTask(taskText: string, apiKey: string): Promise<GeminiRefinement> {
-  if (!apiKey) {
-    throw new Error("API Key is missing. Please provide one in login.");
-  }
-  
-  const ai = new GoogleGenAI({ apiKey });
+// Refine task uses process.env.API_KEY exclusively as per guidelines
+export async function refineTask(taskText: string): Promise<GeminiRefinement> {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
     const response = await ai.models.generateContent({
@@ -43,7 +40,7 @@ export async function refineTask(taskText: string, apiKey: string): Promise<Gemi
   } catch (error) {
     console.error("Gemini Refinement Error:", error);
     return {
-      subtasks: ["Unable to decompose task", "Verify your API key"],
+      subtasks: ["Unable to decompose task", "Check system environment settings"],
       estimatedTime: "Unknown",
       category: "Error"
     };

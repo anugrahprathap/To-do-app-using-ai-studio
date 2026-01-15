@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { 
   Plus, 
@@ -16,21 +16,23 @@ import {
   User as UserIcon,
   ShieldCheck,
   Zap,
-  Key
+  PlusSquare
 } from 'lucide-react';
-import { Task, Subtask, Priority, User } from './types';
-import { Background3D } from './components/Background3D';
-import { refineTask } from './services/gemini';
-import { HoloStore } from './services/db';
+import { Task, Subtask, Priority, User } from './types.ts';
+import { Background3D } from './components/Background3D.tsx';
+import { refineTask } from './services/gemini.ts';
+import { HoloStore } from './services/db.ts';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loginInput, setLoginInput] = useState('');
-  const [apiKeyInput, setApiKeyInput] = useState('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isRefining, setIsRefining] = useState<string | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  
+  // Ref to handle subtask input clearing
+  const subtaskInputsRef = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   useEffect(() => {
     const lastUser = localStorage.getItem("HOLOTASK_CURRENT_USER");
@@ -47,9 +49,10 @@ const App: React.FC = () => {
     }
   }, [tasks, user]);
 
-  const handleLogin = (username: string, apiKey?: string) => {
+  // Removed apiKey parameter to comply with guidelines
+  const handleLogin = (username: string) => {
     if (!username.trim()) return;
-    const loggedUser = HoloStore.login(username.toLowerCase(), apiKey);
+    const loggedUser = HoloStore.login(username.toLowerCase());
     setUser(loggedUser);
     setTasks(loggedUser.tasks);
     localStorage.setItem("HOLOTASK_CURRENT_USER", username.toLowerCase());
@@ -130,16 +133,11 @@ const App: React.FC = () => {
     }));
   };
 
+  // Simplified handleAutoDecompose as apiKey is now handled globally
   const handleAutoDecompose = async (task: Task) => {
-    if (!user?.apiKey && !process.env.API_KEY) {
-      alert("Please provide a Gemini API Key in the login screen to use AI features.");
-      return;
-    }
-    
     setIsRefining(task.id);
     try {
-      const activeKey = user?.apiKey || process.env.API_KEY || "";
-      const data = await refineTask(task.text, activeKey);
+      const data = await refineTask(task.text);
       const newSubtasks: Subtask[] = data.subtasks.map(s => ({
         id: crypto.randomUUID(),
         text: s,
@@ -185,10 +183,10 @@ const App: React.FC = () => {
             <div className="inline-block p-4 bg-purple-600/20 rounded-3xl mb-6">
               <ShieldCheck className="w-12 h-12 text-purple-400" />
             </div>
-            <h1 className="text-4xl font-bold orbitron mb-2 tracking-tighter">HOLOTASK</h1>
+            <h1 className="text-4xl font-bold orbitron mb-2 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">HOLOTASK</h1>
             <p className="text-zinc-500 mb-8 uppercase text-[10px] tracking-[0.2em] font-bold">Secure Command Uplink</p>
             
-            <div className="space-y-4">
+            <div className="space-y-4 text-left">
               <div className="relative group">
                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-purple-400" />
                 <input 
@@ -199,18 +197,9 @@ const App: React.FC = () => {
                   className="w-full bg-black/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 outline-none focus:border-purple-500/50 transition-all placeholder:text-zinc-700 text-lg uppercase font-mono"
                 />
               </div>
-              <div className="relative group">
-                <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-cyan-400" />
-                <input 
-                  type="password"
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  placeholder="Gemini API Key (Optional)..."
-                  className="w-full bg-black/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 outline-none focus:border-cyan-500/50 transition-all placeholder:text-zinc-700 font-mono text-sm"
-                />
-              </div>
+              {/* Removed API Key input block to comply with guidelines: do not ask user for API key */}
               <button 
-                onClick={() => handleLogin(loginInput, apiKeyInput)}
+                onClick={() => handleLogin(loginInput)}
                 className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 p-4 rounded-2xl font-bold orbitron tracking-widest text-sm transition-all shadow-[0_0_30px_rgba(147,51,234,0.3)] active:scale-95"
               >
                 INITIALIZE_SESSION
@@ -243,9 +232,9 @@ const App: React.FC = () => {
                 HOLOTASK
               </h1>
             </div>
-            <div className="flex items-center gap-2 ml-14 text-zinc-400 text-xs font-bold orbitron tracking-tighter opacity-80">
+            <div className="flex items-center gap-2 ml-14 text-zinc-400 text-xs font-bold orbitron tracking-tighter opacity-80 uppercase">
               <UserIcon className="w-3 h-3 text-cyan-400" />
-              COMMANDER: {user.username.toUpperCase()}
+              COMMANDER: {user.username}
             </div>
           </div>
 
@@ -335,10 +324,18 @@ const App: React.FC = () => {
                               {task.text}
                             </h3>
                             <div className="flex gap-1">
-                              <button onClick={() => handleAutoDecompose(task)} className={`p-2 transition-all ${isRefining === task.id ? 'text-purple-400 animate-spin' : 'text-zinc-600 hover:text-cyan-400'}`}>
+                              <button 
+                                onClick={() => handleAutoDecompose(task)} 
+                                className={`p-2 transition-all ${isRefining === task.id ? 'text-purple-400 animate-spin' : 'text-zinc-600 hover:text-cyan-400'}`}
+                                title="Auto-decompose task"
+                              >
                                 {isRefining === task.id ? <Loader2 className="w-4 h-4" /> : <BrainCircuit className="w-4 h-4" />}
                               </button>
-                              <button onClick={() => deleteTask(task.id)} className="p-2 text-zinc-600 hover:text-red-400 transition-all">
+                              <button 
+                                onClick={() => deleteTask(task.id)} 
+                                className="p-2 text-zinc-600 hover:text-red-400 transition-all"
+                                title="Delete task"
+                              >
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -370,23 +367,38 @@ const App: React.FC = () => {
                             </div>
                           ))}
                           
-                          {/* Manual Subtask Input */}
+                          {/* Manual Subtask Input with Visible Add Button */}
                           <div className="mt-3 flex items-center gap-2 px-3">
                             <div className="flex-1 relative group/subinput">
                               <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-xl blur opacity-0 group-focus-within/subinput:opacity-100 transition duration-300"></div>
                               <input 
                                 type="text"
+                                // Fixed: Wrapped in curly braces to ensure the ref callback returns void instead of the element instance
+                                ref={el => { subtaskInputsRef.current[task.id] = el; }}
                                 placeholder="New sub-directive..."
                                 className="relative w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs outline-none focus:border-cyan-500/50 transition-all placeholder:text-zinc-700"
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
-                                    addSubtask(task.id, (e.target as HTMLInputElement).value);
+                                    const val = (e.target as HTMLInputElement).value;
+                                    addSubtask(task.id, val);
                                     (e.target as HTMLInputElement).value = '';
                                   }
                                 }}
                               />
                             </div>
-                            <div className="text-[9px] orbitron text-zinc-700 font-bold uppercase tracking-widest">Add_Node</div>
+                            <button 
+                              onClick={() => {
+                                const input = subtaskInputsRef.current[task.id];
+                                if (input && input.value) {
+                                  addSubtask(task.id, input.value);
+                                  input.value = '';
+                                }
+                              }}
+                              className="p-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-lg transition-all border border-cyan-500/20 active:scale-95"
+                              title="Add subtask"
+                            >
+                              <PlusSquare className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
                       )}
